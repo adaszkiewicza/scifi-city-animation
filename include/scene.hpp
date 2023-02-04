@@ -31,10 +31,12 @@ public:
     ~Scene();
 private:
     Mesh* meshTest;
-    Model* modelTest;
+    Model* modelTestA;
+    Model* modelTestB;
+    Model* modelTestC;
 
     MeshLoader loader;
 
-    void SetUpMeshTest();
+    void SetUpMeshesTest();
 
 };

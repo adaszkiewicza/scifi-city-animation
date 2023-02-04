@@ -1,5 +1,5 @@
 #include "scene.hpp"
-
+#include <iostream>
 MeshLoader::MeshLoader(std::string folderPath)
 : folderPath(folderPath) {}
 
@@ -84,27 +84,43 @@ Mesh* MeshLoader::GenerateMeshTest()
 Scene::Scene()
 : loader("lol")
 {
-    SetUpMeshTest();
+    SetUpMeshesTest();
 }
 
-void Scene::SetUpMeshTest()
+void Scene::SetUpMeshesTest()
 {
     meshTest = loader.GenerateMeshTest();
-    modelTest = new Model((*meshTest));
+    modelTestA = new Model((*meshTest));
+    modelTestB = new Model((*meshTest));
+    modelTestC = new Model((*meshTest));
 
-    modelTest->SetColor(glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
-    modelTest->SetPlacement(glm::vec3(0.0f, 0.0f, 0.0f));
-    modelTest->SetNoRotation();
-    modelTest->SetScale(0.5f);
+    modelTestA->SetColor(glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
+    modelTestA->SetPlacement(glm::vec3(0.0f, 0.0f, 0.0f));
+    modelTestA->SetNoRotation();
+    modelTestA->SetScale(0.5f);
+
+    modelTestB->SetColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    modelTestB->SetPlacement(glm::vec3(0.0f, 0.3f, -1.0f));
+    modelTestB->SetRotation(45.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+    modelTestB->SetScale(0.5f);
+
+    modelTestC->SetColor(glm::vec4(0.5f, 1.0f, 0.3f, 1.0f));
+    modelTestC->SetPlacement(glm::vec3(0.0f, 0.5f, 0.5f));
+    modelTestC->SetNoRotation();
+    modelTestC->SetScale(0.5f);
 }
 
 void Scene::Draw(Shader& shader)
 {
-    modelTest->Draw(shader);
+    modelTestA->Draw(shader);
+    modelTestB->Draw(shader);
+    modelTestC->Draw(shader);
 }
 
 Scene::~Scene()
 {
-    delete modelTest;
+    delete modelTestA;
+    delete modelTestB;
+    delete modelTestC;
     delete meshTest;
 }
