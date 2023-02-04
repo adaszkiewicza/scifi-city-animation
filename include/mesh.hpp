@@ -11,14 +11,11 @@
 #include "shader.hpp"
 
 struct Vertex {
+    Vertex(glm::vec3 pos, glm::vec3 norm)
+    : Position(pos), Normal(norm) {};
+    
     glm::vec3 Position;
     glm::vec3 Normal;
-    glm::vec2 TexCoords;
-};
-
-struct Texture {
-    unsigned int id;
-    std::string type;
 };
 
 class Mesh {
@@ -26,9 +23,8 @@ class Mesh {
         // mesh data
         std::vector<Vertex> vertices;
         std::vector<uint> indices;
-        std::vector<Texture> textures;
 
-        Mesh(std::vector<Vertex> vertices, std::vector<uint> indices, std::vector<Texture> textures);
+        Mesh(std::vector<Vertex> vertices, std::vector<uint> indices);
         void Draw(Shader &shader);
     private:
         //  render data

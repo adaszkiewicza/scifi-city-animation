@@ -5,6 +5,8 @@
 
 #include "cameras.hpp"
 #include "common.hpp"
+#include "scene.hpp"
+#include "shader.hpp"
 
 #define APP_NAME "LAB4"
 
@@ -50,6 +52,8 @@ private:
 
     Cameras cameras;
     LastMouse lastMouse;
+    Scene scene;
+    Shader* shader;
 
     void CalculateFrameDistance();
     glm::mat4 CalculateProjectionMat();

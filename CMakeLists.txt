@@ -23,6 +23,8 @@ set(SOURCES
     "src/mesh.cpp"
     "src/shader.cpp"
     "src/app.cpp"
+    "src/model.cpp"
+    "src/scene.cpp"
     )
 
 add_executable(lab4 ${MAIN} ${SOURCES})

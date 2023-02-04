@@ -28,11 +28,6 @@ int main(int argc, char **argv)
     App* app = new App(windowWidth, windowHeight);
     register_callbacks(window, app);
 
-    // create shaders
-    ShaderConfig shaderConfig = ShaderConfig();
-    Shader shaders = Shader(shaderConfig);
-    
-
     // data
 
    /* float vertices[] = {
@@ -79,7 +74,7 @@ int main(int argc, char **argv)
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }*/
-    
+   /* {
     float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -149,8 +144,7 @@ int main(int argc, char **argv)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-
-    shaders.use();
+    } */
 
     //glm::mat3 temp = app->View();
    // std::cout << glm::to_string(temp) << std::endl;
@@ -160,11 +154,8 @@ int main(int argc, char **argv)
     {
         app->ProcessNextFrame();
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-        // render
+      /* { // render
         shaders.use();
             // uniform + time
     /// pass projection matrix to shader (note that in this case it could change every frame)
@@ -192,6 +183,7 @@ int main(int argc, char **argv)
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
+       }*/
         glfwSwapBuffers(window);
         glfwPollEvents();
 
@@ -200,8 +192,8 @@ int main(int argc, char **argv)
     }
 
     // cleanup
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    //glDeleteVertexArrays(1, &VAO);
+    //glDeleteBuffers(1, &VBO);
 
     delete app;
     glfwTerminate();
