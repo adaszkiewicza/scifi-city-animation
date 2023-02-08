@@ -17,6 +17,7 @@ class MeshLoader
 public:
     MeshLoader(std::string folderPath);
     Mesh* GenerateMeshTest();
+    Mesh* GenerateMeshFromFile(std::string path);
 
 private:
     std::string folderPath; 
@@ -34,6 +35,9 @@ private:
     Model* modelTestA;
     Model* modelTestB;
     Model* modelTestC;
+
+    Mesh* meshObj;
+    Model* modelObj;
 
     MeshLoader loader;
 
