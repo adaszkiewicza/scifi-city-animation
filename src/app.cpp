@@ -77,6 +77,7 @@ void App::MouseMoveCallback(double xposIn, double yposIn)
 void App::PreLoopSetup()
 {
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 }
 
 void App::ProcessNextFrame()
@@ -85,6 +86,7 @@ void App::ProcessNextFrame()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     CalculateFrameDistance();
+    PrintFPS();
 
     scene.AdvanceMovement();
 
@@ -114,6 +116,18 @@ void App::CalculateFrameDistance()
     float currentFrameTime = static_cast<float>(glfwGetTime());
     deltaFrameTime = currentFrameTime - lastFrameTime;
     lastFrameTime = currentFrameTime;
+}
+
+void App::PrintFPS()
+{
+    timeFromLastPrint += deltaFrameTime;
+    frameCount++;
+    if (timeFromLastPrint >= printDistance) {
+        float FPS = static_cast<float>(frameCount) / timeFromLastPrint;
+        frameCount = 0;
+        timeFromLastPrint = 0.0f;
+        std::cout << "[FPS] " << FPS << std::endl;
+    }
 }
 
 static void error_callback(int error, const char *details)

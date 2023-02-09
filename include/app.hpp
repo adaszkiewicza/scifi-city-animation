@@ -59,6 +59,11 @@ private:
     void CalculateFrameDistance();
     glm::mat4 CalculateProjectionMat();
 
+    float timeFromLastPrint = 0.0f;
+    uint frameCount = 0;
+    const float printDistance = 1.0f;
+    void PrintFPS();
+
     void SwitchWires();
 };
 
