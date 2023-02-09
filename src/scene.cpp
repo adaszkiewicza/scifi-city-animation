@@ -144,7 +144,6 @@ Mesh* MeshLoader::GenerateMeshFromFile(std::string path)
 
             verticies.push_back(Vertex(coords, normal));
         }
-        std::cout << std::endl;
         index_offset += fv;
     }
     
@@ -161,54 +160,68 @@ Scene::Scene()
 : loader("../objects/")
 {
     SetUpMeshesTest();
+    SetUpLights();
 }
 
 void Scene::SetUpMeshesTest()
 {
+    testMaterial = new Material(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.5f), 32.0f);
     meshTest = loader.GenerateMeshTest();
-    modelTestA = new Model((*meshTest));
-    modelTestB = new Model((*meshTest));
-    modelTestC = new Model((*meshTest));
+    modelTestA = new ModelStatic(*meshTest, *testMaterial);
+    modelTestB = new ModelStatic(*meshTest, *testMaterial);
 
-    modelTestA->SetColor(glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
+    modelTestA->SetColor(glm::vec3(1.0f, 0.0f, 1.0f));
     modelTestA->SetPlacement(glm::vec3(10.0f, 0.0f, 0.0f));
     modelTestA->SetNoRotation();
     modelTestA->SetScale(0.1f);
 
-    modelTestB->SetColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    modelTestB->SetPlacement(glm::vec3(0.0f, 1.0f, 0.0f));
+    modelTestB->SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
+    modelTestB->SetPlacement(glm::vec3(-0.5f, -0.5f, 0.0f));
     modelTestB->SetNoRotation();
-    modelTestB->SetScale(0.1f);
-
-    modelTestC->SetColor(glm::vec4(0.5f, 1.0f, 0.3f, 1.0f));
-    modelTestC->SetPlacement(glm::vec3(1.0f, 0.0f, 0.0f));
-    modelTestC->SetNoRotation();
-    modelTestC->SetScale(0.1f);
+    modelTestB->SetScale(1.0f);
 
     meshObj = loader.GenerateMeshFromFile("torus.obj");
-    modelObj = new Model(*meshObj);
-    modelObj->SetColor(glm::vec4(0.6f, 0.8f, 0.3f, 1.0f));
+    modelObj = new ModelStatic(*meshObj, *testMaterial);
+    modelObj->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
     modelObj->SetPlacement(glm::vec3(0.0f, 0.0f, 0.0f));
     modelObj->SetNoRotation();
     modelObj->SetScale(0.5f);
+}
 
+void Scene::SetUpLights()
+{
+    lightMesh = loader.GenerateMeshTest();
+    lights = new Lights(*lightMesh);
+}
+
+void Scene::AdvanceMovement()
+{
+    // pass for now
 }
 
 void Scene::Draw(Shader& shader)
 {
+    lights->SetUniforms(shader);
+
     modelTestA->Draw(shader);
     modelTestB->Draw(shader);
-    modelTestC->Draw(shader);
     modelObj->Draw(shader);
+}
+
+void Scene::DrawLight(Shader &shader)
+{
+    lights->Draw(shader);
 }
 
 Scene::~Scene()
 {
     delete modelTestA;
     delete modelTestB;
-    delete modelTestC;
     delete meshTest;
 
     delete modelObj;
     delete meshObj;
+
+    delete lights;
+    delete lightMesh;
 }

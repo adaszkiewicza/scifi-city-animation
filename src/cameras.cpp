@@ -31,6 +31,11 @@ float BaseCamera::GetFov()
     return fov;
 }
 
+glm::vec3 BaseCamera::GetCameraPosition()
+{
+    return position;
+}
+
 void BaseCamera::UpdateLookAt()
 {
     lookAt = glm::lookAt(position, position + front, up);
@@ -65,6 +70,11 @@ glm::mat4 Cameras::GetCurrentViewMatrix()
 float Cameras::GetCurrentFov()
 {
     return activeCamera->GetFov();
+}
+
+glm::vec3 Cameras::GetCurrentCameraPosition()
+{
+    return activeCamera->GetCameraPosition();
 }
 
 void Cameras::ProcessKeyboard(CameraMovement direction, float deltaTime)

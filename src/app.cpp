@@ -3,8 +3,11 @@
 App::App(int width, int height)
 : width(width), height(height), lastMouse(width / 2.0f, height / 2.0f), scene()
 {
-    ShaderConfig conf = ShaderConfig();
+    ShaderConfig conf = ShaderConfig("shader.vs", "shader.fs");
     shader = new Shader(conf);
+
+    ShaderConfig lightConf = ShaderConfig("light.vs", "light.fs");
+    lightShader = new Shader(lightConf); 
 }
 
 void App::SizeCallback(int width, int height)
@@ -78,19 +81,27 @@ void App::PreLoopSetup()
 
 void App::ProcessNextFrame()
 {
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     CalculateFrameDistance();
 
+    scene.AdvanceMovement();
+
     glm::mat4 view = cameras.GetCurrentViewMatrix();
     glm::mat4 projection = CalculateProjectionMat();
+    glm::vec3 position = cameras.GetCurrentCameraPosition();
 
     (*shader).use();
     (*shader).setUniform("view", view);
     (*shader).setUniform("projection", projection);
-
+    (*shader).setUniform("viewPos", position);
     scene.Draw(*shader);
+    
+    (*lightShader).use();
+    (*lightShader).setUniform("view", view);
+    (*lightShader).setUniform("projection", projection);
+    scene.DrawLight(*lightShader);
 }
 
 glm::mat4 App::CalculateProjectionMat()

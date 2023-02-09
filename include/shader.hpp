@@ -18,13 +18,14 @@ class ShaderConfig
 private:
     const std::string folderPath = "../shaders/";
 
-    const std::string vertexBasePath = "shader.vs";
-    const std::string fragmentBasePath = "shader.fs";
+    const std::string vertexBasePath;
+    const std::string fragmentBasePath;
 public:
     const std::string vertexPath = folderPath + vertexBasePath;
     const std::string fragmentPath = folderPath + fragmentBasePath;
 
-    ShaderConfig();
+    ShaderConfig(std::string vert, std::string frag)
+    : vertexBasePath(vert), fragmentBasePath(frag){};
 };
 
 class Shader

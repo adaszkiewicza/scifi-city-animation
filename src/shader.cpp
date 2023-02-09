@@ -2,10 +2,6 @@
 
 #include "shader.hpp"
 
-ShaderConfig::ShaderConfig()
-{}
-
-
 Shader::Shader(ShaderConfig &config)
 {
     std::string verexString = readCode(config.vertexPath);
@@ -113,5 +109,5 @@ void Shader::setUniform(const std::string &name, glm::mat4 matrix)
 }
 void Shader::setUniform(const std::string &name, glm::vec3 vector)
 {
-    glUniform4fv(checkUnifromExistance(name), 1, glm::value_ptr(vector));
+    glUniform3fv(checkUnifromExistance(name), 1, glm::value_ptr(vector));
 }

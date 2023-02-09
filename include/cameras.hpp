@@ -26,6 +26,7 @@ public:
     glm::mat4 GetViewMatrix();
     std::string GetName();
     float GetFov();
+    glm::vec3 GetCameraPosition();
 
     virtual void ProcessKeyboard(CameraMovement direction, float deltaTime) {};
     virtual void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {};
@@ -54,6 +55,7 @@ public:
     std::string GetCurrentCameraName();
     glm::mat4 GetCurrentViewMatrix();
     float GetCurrentFov();
+    glm::vec3 GetCurrentCameraPosition();
 
     void ProcessKeyboard(CameraMovement direction, float deltaTime);
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch);

@@ -11,6 +11,7 @@
 #include "shader.hpp"
 #include "mesh.hpp"
 #include "model.hpp"
+#include "lights.hpp"
 
 class MeshLoader
 {
@@ -27,20 +28,25 @@ class Scene
 {
 public:
     Scene();
+    void AdvanceMovement();
     void Draw(Shader &shader);
+    void DrawLight(Shader &shader);
 
     ~Scene();
 private:
+    Material* testMaterial;
     Mesh* meshTest;
-    Model* modelTestA;
-    Model* modelTestB;
-    Model* modelTestC;
+    ModelStatic* modelTestA;
+    ModelStatic* modelTestB;
 
     Mesh* meshObj;
-    Model* modelObj;
+    ModelStatic* modelObj;
+
+    Mesh* lightMesh;
+    Lights* lights;
 
     MeshLoader loader;
 
     void SetUpMeshesTest();
-
+    void SetUpLights();
 };

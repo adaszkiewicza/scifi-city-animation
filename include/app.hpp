@@ -54,6 +54,7 @@ private:
     LastMouse lastMouse;
     Scene scene;
     Shader* shader;
+    Shader* lightShader;
 
     void CalculateFrameDistance();
     glm::mat4 CalculateProjectionMat();

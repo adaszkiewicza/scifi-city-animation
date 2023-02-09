@@ -24,6 +24,7 @@ set(SOURCES
     "src/shader.cpp"
     "src/app.cpp"
     "src/model.cpp"
+    "src/lights.cpp"
     "src/scene.cpp"
     )
 

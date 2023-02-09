@@ -1,10 +1,26 @@
 #include "model.hpp"
 
+Material::Material(glm::vec3 diffuse, glm::vec3 specular, float shininess)
+ : diffuse(diffuse), specular(specular), shininess(shininess)
+ {};
+
+void Material::SetUniforms(Shader &shader)
+{
+    shader.setUniform("material.diffuse", diffuse);
+    shader.setUniform("material.specular", specular);
+    shader.setUniform("material.shininess", shininess);
+}
+
+void Material::SetColor(glm::vec3 color)
+{
+    diffuse = color;
+}
+
 Model::Model(Mesh& mesh)
 : mesh(mesh)
 {}
 
-void Model::SetColor(glm::vec4 color)
+void Model::SetColor(glm::vec3 color)
 {
     this->color = color;
 }
@@ -46,6 +62,19 @@ void Model::Draw(Shader& shader)
     glm::mat4 model = CalculateModel();
     shader.setUniform("model", model);
     shader.setUniform("constColor", color);
+
+    mesh.Draw(shader);
+}
+
+ModelStatic::ModelStatic(Mesh &mesh, Material &material)
+ : Model(mesh), material(material)
+{};
+
+void ModelStatic::Draw(Shader &shader)
+{
+    glm::mat4 model = CalculateModel();
+    shader.setUniform("model", model);
+    material.SetUniforms(shader);
 
     mesh.Draw(shader);
 }
