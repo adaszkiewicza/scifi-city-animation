@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include <cmath>
 
 App::App(int width, int height)
 : width(width), height(height), lastMouse(width / 2.0f, height / 2.0f), scene()
@@ -35,6 +36,8 @@ void App::KeyCallback(int key, int scancode, int action, int mods)
         cameras.SwitchToNextCamera();
     if (key == GLFW_KEY_W && action == GLFW_PRESS)
         SwitchWires();
+    if (key == GLFW_KEY_F && action == GLFW_PRESS)
+        SwitchFog();
 }
 
 void App::SwitchWires()
@@ -46,6 +49,11 @@ void App::SwitchWires()
         wiresOn = true;
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
+}
+
+void App::SwitchFog()
+{
+    fogOn = !fogOn;
 }
 
 void App::ScrollCallback(double xoffset, double yoffset)
@@ -77,7 +85,14 @@ void App::MouseMoveCallback(double xposIn, double yposIn)
 void App::PreLoopSetup()
 {
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
+}
+
+float App::GetFogIntensity()
+{
+    float val =  fabs(sin(lastFrameTime / 10));
+    // to accentuate
+    return fmin(1.0f, val + 0.5f);
 }
 
 void App::ProcessNextFrame()
@@ -87,6 +102,8 @@ void App::ProcessNextFrame()
     
     CalculateFrameDistance();
     PrintFPS();
+
+    float fogIntensity = GetFogIntensity();
 
     scene.AdvanceMovement();
 
@@ -98,6 +115,9 @@ void App::ProcessNextFrame()
     (*shader).setUniform("view", view);
     (*shader).setUniform("projection", projection);
     (*shader).setUniform("viewPos", position);
+    (*shader).setUniform("fog.fogOn", fogOn);
+    (*shader).setUniform("fog.fogIntensity", fogIntensity);
+    (*shader).setUniform("fog.color", fogColor);
     scene.Draw(*shader);
     
     (*lightShader).use();

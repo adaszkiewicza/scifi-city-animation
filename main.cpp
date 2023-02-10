@@ -27,6 +27,7 @@ int main(int argc, char **argv)
 
     App* app = new App(windowWidth, windowHeight);
     register_callbacks(window, app);
+    app->PreLoopSetup();
 
     // data
 

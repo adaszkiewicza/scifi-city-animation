@@ -26,8 +26,8 @@ private:
 
     glm::vec3 position;
     glm::vec3 direction;
-    const float cutOff = glm::cos(glm::radians(3.0f));
-    const float outerCutOff = glm::cos(glm::radians(3.5f));
+    const float cutOff = glm::cos(glm::radians(12.0f));
+    const float outerCutOff = glm::cos(glm::radians(13.5f));
 
     const float constant = 1.0f;
     const float linear = 0.09f;
@@ -51,7 +51,7 @@ private:
 
     glm::vec3 position;
 
-    const float constant = 1.0f;
+    const float constant = 2.0f;
     const float linear = 0.09f;
     const float quadratic = 0.032f;
 

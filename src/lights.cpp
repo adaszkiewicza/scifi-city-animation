@@ -71,14 +71,14 @@ Lights::Lights(Mesh &defaultLightMesh)
     glm::vec3 lightColor, lightDirection, lightPosition;
     float scale;
 
-    lightColor = glm::vec3(1.0f, 1.0f, 0.0f);
-    lightPosition = glm::vec3(-6.0f, -1.0f, 3.0f);
+    lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    lightPosition = glm::vec3(0.0f, 0.0f, 0.0f);
     scale = 0.1f;
     pointLight = new PointLight(defaultLightMesh, lightColor, lightPosition, scale);
 
     lightColor = glm::vec3(1.0f, 0.0f, 0.9f);
-    lightPosition = glm::vec3(0.0f, 0.0f, 2.0f);
-    lightDirection = glm::vec3(0.0f, 0.0f, -1.0f);
+    lightPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+    lightDirection = glm::vec3(1.0f, 0.0f, 0.0f);
     scale = 0.1f;
     spotLight = new SpotLight(defaultLightMesh, lightColor, lightPosition, lightDirection, scale);
 }

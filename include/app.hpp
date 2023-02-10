@@ -49,6 +49,8 @@ private:
     float lastFrameTime = 0.0f;
     float deltaFrameTime = 0.0f;
     bool wiresOn = false;
+    bool fogOn = false;
+    const glm::vec3 fogColor = glm::vec3(0.f, 0.0f, 0.7f);
 
     Cameras cameras;
     LastMouse lastMouse;
@@ -58,6 +60,7 @@ private:
 
     void CalculateFrameDistance();
     glm::mat4 CalculateProjectionMat();
+    float GetFogIntensity();
 
     float timeFromLastPrint = 0.0f;
     uint frameCount = 0;
@@ -65,6 +68,7 @@ private:
     void PrintFPS();
 
     void SwitchWires();
+    void SwitchFog();
 };
 
 

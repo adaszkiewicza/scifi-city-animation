@@ -16,7 +16,7 @@
 class Material
 {
 public:
-    Material(glm::vec3 diffuse, glm::vec3 specular, float shininess);
+    Material(glm::vec3 diffuse, glm::vec3 specular, float shininess, glm::vec3 ambient = glm::vec3(0.0f));
 
     void SetUniforms(Shader &shader);
     void SetColor(glm::vec3 color);
@@ -24,6 +24,7 @@ private:
     float shininess;
     glm::vec3 diffuse;
     glm::vec3 specular;
+    glm::vec3 ambient;
 };
 
 class Model
@@ -52,10 +53,28 @@ protected:
 class ModelStatic : public Model
 {
 public:
-    ModelStatic(Mesh &mesh, Material &material);
+    ModelStatic(Mesh &mesh, Material material);
 
     void Draw(Shader &shader);
 
 private:
-    Material &material;
+    Material material;
+};
+
+class ComplexStaticModel
+{
+public:
+    ComplexStaticModel(std::vector<ModelStatic*> models);
+    void SetColor(glm::vec3 color);
+    void SetRotation(float angle, glm::vec3 axis);
+    void SetNoRotation();
+    void SetScale(float scale);
+    void SetPlacement(glm::vec3 vector);
+
+    void Draw(Shader& shader);
+
+    ~ComplexStaticModel();
+
+private:
+    std::vector<ModelStatic*> models;
 };

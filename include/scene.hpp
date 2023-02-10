@@ -19,9 +19,11 @@ public:
     MeshLoader(std::string folderPath);
     Mesh* GenerateMeshTest();
     Mesh* GenerateMeshFromFile(std::string path);
+    std::pair<std::vector<ModelStatic*>, std::vector<Mesh*>> GenerateModelsComplex(std::string path);
 
 private:
-    std::string folderPath; 
+    std::string folderPath;
+    uint LoadTexture(std::string path);
 };
 
 class Scene
@@ -44,6 +46,12 @@ private:
 
     Mesh* lightMesh;
     Lights* lights;
+
+    ComplexStaticModel* room;
+    std::vector<Mesh*> roomMeshes;
+
+    ComplexStaticModel* car;
+    std::vector<Mesh*> carMeshes;
 
     MeshLoader loader;
 
