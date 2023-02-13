@@ -4,7 +4,13 @@ LAB4 for computer graphics course. Object files are stolen form somewhere,
 but I made sure they have proper licences (by stolen I mean I don't remember their origin, 
 they were free). City not rendering properly - the *.obj file probably has incorrect normals.
 
+THE APP CAN FREEZE. Loading textures objects can take a lot of time (could be optimized of course).
+
+Tested on linux (should work on Windows I hope, may require libglfw3).
+
 ## Installation
+
+Make sure you are in the project directory.
 
 ```bash
 mkdir build

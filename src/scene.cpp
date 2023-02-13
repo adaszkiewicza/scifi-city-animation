@@ -337,15 +337,9 @@ void Scene::SetUpMeshesTest()
     room->SetNoRotation();
     room->SetScale(0.005f);
 
-    //room->SetRotation(180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-    //city->SetNoRotation();
-    //room->SetScale(0.4f);
-    //city->SetScale(1.0f);*/
-
     loaded = loader.GenerateModelsComplex("spaceship.obj");
     models = loaded.first;
-    //std::vector<ModelStatic*> dupa;
-    //dupa.push_back(models[0]);
+
     carMeshes = loaded.second;
     car = new ComplexStaticModel(models);
     car->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
@@ -386,7 +380,6 @@ void Scene::SetUpLights()
 
 void Scene::AdvanceMovement(float deltaTime)
 {
-    // pass for now
     Animation(deltaTime);
     lights->ProcessFrame(deltaTime);
     lights->ProcessCarMovement(tempCarPosition, totalAngle);
