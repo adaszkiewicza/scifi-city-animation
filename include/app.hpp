@@ -42,6 +42,8 @@ public:
     glm::mat4 Proj() {return CalculateProjectionMat();};
     glm::mat4 View() {return cameras.GetCurrentViewMatrix();};
 
+    ~App();
+
 private:
     int height;
     int width;
@@ -50,13 +52,17 @@ private:
     float deltaFrameTime = 0.0f;
     bool wiresOn = false;
     bool fogOn = false;
-    const glm::vec3 fogColor = glm::vec3(0.f, 0.0f, 0.7f);
+    const glm::vec3 fogColor = glm::vec3(0.0f, 0.0f, 0.7f);
 
     Cameras cameras;
     LastMouse lastMouse;
     Scene scene;
-    Shader* shader;
+    Shader* shaderMain;
     Shader* lightShader;
+    Shader* shaderFlat;
+
+    Shader* shader;
+    bool flatOn = false;
 
     void CalculateFrameDistance();
     glm::mat4 CalculateProjectionMat();
@@ -69,6 +75,9 @@ private:
 
     void SwitchWires();
     void SwitchFog();
+    void SwitchAnimation();
+    void SwitchShader();
+    void SetCurrentShader();
 };
 
 

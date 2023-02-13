@@ -16,7 +16,8 @@
 class Material
 {
 public:
-    Material(glm::vec3 diffuse, glm::vec3 specular, float shininess, glm::vec3 ambient = glm::vec3(0.0f));
+    Material(glm::vec3 diffuse, glm::vec3 specular, float shininess, 
+        glm::vec3 ambient = glm::vec3(0.0f), int textureID = -1);
 
     void SetUniforms(Shader &shader);
     void SetColor(glm::vec3 color);
@@ -25,6 +26,8 @@ private:
     glm::vec3 diffuse;
     glm::vec3 specular;
     glm::vec3 ambient;
+
+    int textureID;
 };
 
 class Model
@@ -37,7 +40,7 @@ public:
     void SetScale(float scale);
     void SetPlacement(glm::vec3 vector);
 
-    void Draw(Shader& shader);
+    void Draw(Shader& shader, bool reflection = false);
 
 protected:
     Mesh& mesh;
@@ -48,6 +51,7 @@ protected:
     float angle;
 
     glm::mat4 CalculateModel();
+    glm::mat4 CalculateModelFlipped();
 };
 
 class ModelStatic : public Model
@@ -55,7 +59,7 @@ class ModelStatic : public Model
 public:
     ModelStatic(Mesh &mesh, Material material);
 
-    void Draw(Shader &shader);
+    void Draw(Shader &shader, bool reflection=false);
 
 private:
     Material material;
@@ -71,7 +75,7 @@ public:
     void SetScale(float scale);
     void SetPlacement(glm::vec3 vector);
 
-    void Draw(Shader& shader);
+    void Draw(Shader& shader, bool reflection=false);
 
     ~ComplexStaticModel();
 

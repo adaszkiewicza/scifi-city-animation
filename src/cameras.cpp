@@ -1,6 +1,7 @@
 #include "cameras.hpp"
 #include "camera_free.hpp"
 #include "camera_static.hpp"
+#include "camera_following.hpp"
 #include "common.hpp"
 
 BaseCamera::BaseCamera(glm::vec3 position, glm::vec3 worldUp, glm::vec3 front, float fov, std::string name)
@@ -14,6 +15,8 @@ BaseCamera::BaseCamera(glm::vec3 position, glm::vec3 worldUp, glm::vec3 front, f
     up = glm::normalize(glm::cross(right, front));
     this->name = name;
     this->fov = fov;
+
+    lookAt = glm::lookAt(position, front, worldUp);
 }
 
 glm::mat4 BaseCamera::GetViewMatrix()
@@ -45,6 +48,8 @@ Cameras::Cameras()
 {
     cameraStatic = GenerateCameraStatic();
     cameraFree = GenerateCameraFree();
+    cameraFollowing = GenerateCameraFollowing();
+    cameraOnCar = GenerateCameraOnCar();
 
     activeCamera = cameraStatic;
 }
@@ -54,6 +59,10 @@ void Cameras::SwitchToNextCamera()
     if (activeCamera == cameraStatic)
         activeCamera = cameraFree;
     else if (activeCamera == cameraFree)
+        activeCamera = cameraFollowing;
+    else if (activeCamera == cameraFollowing)
+        activeCamera = cameraOnCar;
+    else if (activeCamera == cameraOnCar)
         activeCamera = cameraStatic;
 }
 
@@ -92,11 +101,16 @@ void Cameras::ProcessMouseScroll(float yoffset)
     activeCamera->ProcessMouseScroll(yoffset);
 }
 
+void Cameras::ProcessAnimationData(glm::vec3 position, float target)
+{
+    activeCamera->ProcessAnimationData(position, target);
+}
+
 BaseCamera* Cameras::GenerateCameraStatic() const
 {
-    glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 position = glm::vec3(-1.0f, 2.0f, 3.0f);
     glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 front = glm::vec3(0.0f, -0.2f, -1.0f);
     std::string name = "Static camera";
 
     return new CameraStatic(position, worldUp, front, defaultFov, name);
@@ -104,7 +118,7 @@ BaseCamera* Cameras::GenerateCameraStatic() const
 
 BaseCamera* Cameras::GenerateCameraFree() const
 {
-    glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 position = glm::vec3(0.0f, 1.0f, 3.0f);
     glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
     std::string name = "Free camera";
@@ -112,8 +126,31 @@ BaseCamera* Cameras::GenerateCameraFree() const
     return new CameraFree(position, worldUp, front, defaultFov, name);
 }
 
+BaseCamera* Cameras::GenerateCameraFollowing() const
+{
+    glm::vec3 position = glm::vec3(0.0f, 6.0f, -1.5f);
+    glm::vec3 worldUp = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 front = glm::vec3(0.0f, -10.0f, 0.0f);
+    std::string name = "Following camera";
+
+    return new CameraFollowing(position, worldUp, front, defaultFov, name);
+}
+
+BaseCamera* Cameras::GenerateCameraOnCar() const
+{
+    glm::vec3 position = glm::vec3(0.0f, 6.0f, -1.5f);
+    glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 front = glm::vec3(0.0f, -10.0f, 0.0f);
+    std::string name = "On car camera";
+
+    return new CameraOnCar(position, worldUp, front, defaultFov, name);
+}
+
+
 Cameras::~Cameras()
 {
     delete cameraFree;
     delete cameraStatic;
+    delete cameraFollowing;
+    delete cameraOnCar;
 }

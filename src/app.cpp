@@ -4,11 +4,16 @@
 App::App(int width, int height)
 : width(width), height(height), lastMouse(width / 2.0f, height / 2.0f), scene()
 {
-    ShaderConfig conf = ShaderConfig("shader.vs", "shader.fs");
-    shader = new Shader(conf);
+    ShaderConfig conf = ShaderConfig("shaderMain.vs", "shaderMain.fs");
+    shaderMain = new Shader(conf);
 
     ShaderConfig lightConf = ShaderConfig("light.vs", "light.fs");
-    lightShader = new Shader(lightConf); 
+    lightShader = new Shader(lightConf);
+
+    ShaderConfig flatConf = ShaderConfig("shaderFlat.vs", "shaderFlat.fs");
+    shaderFlat = new Shader(flatConf);
+
+    shader = shaderMain;
 }
 
 void App::SizeCallback(int width, int height)
@@ -16,6 +21,28 @@ void App::SizeCallback(int width, int height)
     this->height = height;
     this->width = width;
     glViewport(0, 0, width, height);
+}
+
+void App::SwitchShader()
+{
+    if (shader == shaderMain) {
+        shader = shaderFlat;
+    } else if (shader == shaderFlat && !flatOn) {
+        flatOn = true;
+    } else {
+        flatOn = false;
+        shader = shaderMain;
+    }
+}
+void App::SetCurrentShader()
+{   
+    if (shader == shaderMain)
+        return;
+    shader->use();
+    if (flatOn)
+        shader->setUniform("flatOn", true);
+    else 
+        shader->setUniform("flatOn", false);
 }
 
 void App::KeyCallback(int key, int scancode, int action, int mods)
@@ -38,6 +65,34 @@ void App::KeyCallback(int key, int scancode, int action, int mods)
         SwitchWires();
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
         SwitchFog();
+    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+        SwitchAnimation();
+    if (key == GLFW_KEY_N && action == GLFW_PRESS)
+        scene.SetNoon();
+    if (key == GLFW_KEY_M && action == GLFW_PRESS)
+        scene.SetMidnight();
+    if (key == GLFW_KEY_V && action == GLFW_PRESS)
+        scene.SwitchVibrations();
+
+    if (key == GLFW_KEY_1 && action == GLFW_PRESS)
+        scene.ModifyCarSpotDirection(1);
+    if (key == GLFW_KEY_2 && action == GLFW_PRESS)
+        scene.ModifyCarSpotDirection(2);
+    if (key == GLFW_KEY_3 && action == GLFW_PRESS)
+        scene.ModifyCarSpotDirection(3);
+    if (key == GLFW_KEY_4 && action == GLFW_PRESS)
+        scene.ModifyCarSpotDirection(4);
+    if (key == GLFW_KEY_5 && action == GLFW_PRESS)
+        scene.ModifyCarSpotDirection(5);
+    if (key == GLFW_KEY_6 && action == GLFW_PRESS)
+        scene.ModifyCarSpotDirection(6);
+    if (key == GLFW_KEY_7 && action == GLFW_PRESS)
+        scene.ModifyCarSpotDirection(7);
+    if (key == GLFW_KEY_8 && action == GLFW_PRESS)
+        scene.ModifyCarSpotDirection(8);
+
+    if (key == GLFW_KEY_S && action == GLFW_PRESS)
+        SwitchShader();
 }
 
 void App::SwitchWires()
@@ -54,6 +109,11 @@ void App::SwitchWires()
 void App::SwitchFog()
 {
     fogOn = !fogOn;
+}
+
+void App::SwitchAnimation()
+{
+    scene.SwitchAnimation();
 }
 
 void App::ScrollCallback(double xoffset, double yoffset)
@@ -85,33 +145,42 @@ void App::MouseMoveCallback(double xposIn, double yposIn)
 void App::PreLoopSetup()
 {
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
 }
 
 float App::GetFogIntensity()
 {
-    float val =  fabs(sin(lastFrameTime / 10));
+    const float fogChangeSpeed = 0.05f; 
+    float val =  fabs(sin(lastFrameTime * fogChangeSpeed));
     // to accentuate
-    return fmin(1.0f, val + 0.5f);
+    //return fmin(1.0f, val + 0.5f);
+    return val;
 }
 
 void App::ProcessNextFrame()
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     
     CalculateFrameDistance();
     PrintFPS();
 
     float fogIntensity = GetFogIntensity();
 
-    scene.AdvanceMovement();
+    scene.AdvanceMovement(deltaFrameTime);
+
+    auto animationInfo = scene.GetCarPositionAndTarget();
+    cameras.ProcessAnimationData(animationInfo.first, animationInfo.second);
+
+    SetCurrentShader();
 
     glm::mat4 view = cameras.GetCurrentViewMatrix();
     glm::mat4 projection = CalculateProjectionMat();
     glm::vec3 position = cameras.GetCurrentCameraPosition();
 
+    // draw scene regurally
     (*shader).use();
+    (*shader).setUniform("reflection", false);
     (*shader).setUniform("view", view);
     (*shader).setUniform("projection", projection);
     (*shader).setUniform("viewPos", position);
@@ -124,6 +193,33 @@ void App::ProcessNextFrame()
     (*lightShader).setUniform("view", view);
     (*lightShader).setUniform("projection", projection);
     scene.DrawLight(*lightShader);
+
+    // now reflection
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF); // Set any stencil to 1
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glStencilMask(0xFF); // Write to stencil buffer
+    glDepthMask(GL_FALSE); // Don't write to depth buffer
+    glClear(GL_STENCIL_BUFFER_BIT); // Clear stencil buffer (0 by default)
+
+    glDisable(GL_CULL_FACE);
+    scene.DrawMirror(*lightShader);
+    glEnable(GL_CULL_FACE);
+    
+    glStencilFunc(GL_EQUAL, 1, 0xFF); // Pass test if stencil value is 1
+    glStencilMask(0x00); // Don't write anything to stencil buffer
+    glDepthMask(GL_TRUE); // Write to depth buffer
+    (*shader).use();
+    (*shader).setUniform("reflection", true);
+    position = glm::vec3(-1.0f * position.x, position.y, position.z);
+    position += glm::vec3(-16.0f, 0.0f, 0.0f);
+    (*shader).setUniform("viewPos", position);
+    scene.Draw(*shader, true);
+    (*lightShader).use();
+    scene.DrawLight(*lightShader, true);
+
+    glDisable(GL_STENCIL_TEST);
+
 }
 
 glm::mat4 App::CalculateProjectionMat()
@@ -148,6 +244,13 @@ void App::PrintFPS()
         timeFromLastPrint = 0.0f;
         std::cout << "[FPS] " << FPS << std::endl;
     }
+}
+
+App::~App()
+{
+    delete lightShader;
+    delete shaderFlat;
+    delete shaderMain;
 }
 
 static void error_callback(int error, const char *details)

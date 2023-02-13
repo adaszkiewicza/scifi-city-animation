@@ -31,6 +31,7 @@ public:
     virtual void ProcessKeyboard(CameraMovement direction, float deltaTime) {};
     virtual void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {};
     virtual void ProcessMouseScroll(float yoffset) {};
+    virtual void ProcessAnimationData(glm::vec3 position, float target) {};
 
 protected:
     glm::vec3 position;
@@ -61,11 +62,15 @@ public:
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch);
     void ProcessMouseScroll(float yoffset);
 
+    void ProcessAnimationData(glm::vec3 position, float target);
+
     ~Cameras();
 
 private:
     BaseCamera* cameraStatic;
     BaseCamera* cameraFree;
+    BaseCamera* cameraFollowing;
+    BaseCamera* cameraOnCar;
 
     BaseCamera* activeCamera;
 
@@ -73,4 +78,6 @@ private:
 
     BaseCamera* GenerateCameraStatic() const;
     BaseCamera* GenerateCameraFree() const;
+    BaseCamera* GenerateCameraFollowing() const;
+    BaseCamera* GenerateCameraOnCar() const;
 };

@@ -12,10 +12,13 @@
 
 #include "tiny_obj_loader.h"
 
+#include <stdlib.h>
+#include <time.h>   
+
 MeshLoader::MeshLoader(std::string folderPath)
 : folderPath(folderPath) 
 {
-    //stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);
 }
 
 Mesh* MeshLoader::GenerateMeshTest()
@@ -96,7 +99,41 @@ Mesh* MeshLoader::GenerateMeshTest()
     return new Mesh(entities, indicies);
 }
 
-uint MeshLoader::LoadTexture(std::string path)
+Mesh* MeshLoader::GenerateMeshMirror()
+{
+    // static object for now :)
+    std::vector<glm::vec3> verts = {
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 1.0f)
+    };
+
+    std::vector<glm::vec3> normals = {
+        glm::vec3(0.0f, 0.0f, 1.0f),
+    };
+
+    std::vector<Vertex> entities = {
+        Vertex(verts[0], normals[0]),
+        Vertex(verts[1], normals[0]),
+        Vertex(verts[2], normals[0]),
+        Vertex(verts[3], normals[0]),
+        Vertex(verts[4], normals[0]),
+        Vertex(verts[5], normals[0]),
+    };
+
+    std::vector<uint> indicies = {
+        0, 1, 2,
+        3, 4, 5
+    };
+
+    return new Mesh(entities, indicies);
+}
+
+int MeshLoader::LoadTexture(std::string path, uint* tex)
 {
     uint texture;
 
@@ -113,18 +150,16 @@ uint MeshLoader::LoadTexture(std::string path)
     int width, height, nrChannels;
 
     unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
-    if (data)
-    {
+    if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
+    } else {
         std::cerr << "Failed to load texture" << std::endl;
+        return -1;
     }
     stbi_image_free(data);
-
-    return texture;
+    *tex = texture;
+    return 1;
 }
 
 static Mesh* MeshSpawner(tinyobj::attrib_t attributes, std::vector<tinyobj::shape_t> shapes, size_t offset)
@@ -193,15 +228,30 @@ std::pair<std::vector<ModelStatic*>, std::vector<Mesh*>> MeshLoader::GenerateMod
             print_err(reader.Error());
     }
 
-    if (!reader.Warning().empty())
-        print_err("- [WARN]:" + reader.Warning());
+    //if (!reader.Warning().empty())
+       // print_err("- [WARN]:" + reader.Warning());
 
     auto& shapes = reader.GetShapes();
     auto& materials = reader.GetMaterials();
     auto& attributes = reader.GetAttrib();
 
+    std::map<std::string, uint> textures;
+    for (size_t i = 0; i < materials.size(); i++)
+    {
+        std::string path = materials[i].diffuse_texname;
+        if (path.empty()) continue;
+        path = folderPath + path;
+        if (auto search = textures.find(path); search == textures.end()) {
+            uint id;
+            if (LoadTexture(path, &id) != -1) {
+                textures.insert(std::pair{path, (uint) id});
+            }
+        }
+    }
+
     std::vector<ModelStatic*> models;
     std::vector<Mesh*> meshes;
+    //std::cout << shapes.size() << "objects" <<std::endl;
     for (size_t i = 0; i < shapes.size(); i++)
     {
         // assume entire obj has same material
@@ -213,8 +263,16 @@ std::pair<std::vector<ModelStatic*>, std::vector<Mesh*>> MeshLoader::GenerateMod
         glm::vec3 diffuse = glm::vec3(shape_material.diffuse[0], shape_material.diffuse[1], shape_material.diffuse[2]);
         glm::vec3 specular = glm::vec3(shape_material.specular[0], shape_material.specular[1], shape_material.specular[2]);
         glm::vec3 ambient = glm::vec3(shape_material.ambient[0], shape_material.ambient[1], shape_material.ambient[2]);
+        int texID = -1;
+        std::string path = shape_material.diffuse_texname;
+        if (!path.empty()) {
+            path = folderPath + path;
+            if (auto search = textures.find(path); search != textures.end()) {
+                texID = search->second;
+            }
+        }
 
-        Material material = Material(diffuse, specular, shape_material.shininess, ambient);
+        Material material = Material(diffuse, specular, shape_material.shininess, ambient, texID);
 
         ModelStatic* model = new ModelStatic(*mesh, material);
         models.push_back(model);
@@ -259,58 +317,65 @@ Scene::Scene()
 {
     SetUpMeshesTest();
     SetUpLights();
+
+    srand(time(NULL));
 }
 
 void Scene::SetUpMeshesTest()
 {
     testMaterial = new Material(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.5f), 32.0f);
     meshTest = loader.GenerateMeshTest();
-    modelTestA = new ModelStatic(*meshTest, *testMaterial);
-    modelTestB = new ModelStatic(*meshTest, *testMaterial);
 
-    modelTestA->SetColor(glm::vec3(1.0f, 0.0f, 1.0f));
-    modelTestA->SetPlacement(glm::vec3(10.0f, 0.0f, 0.0f));
-    modelTestA->SetNoRotation();
-    modelTestA->SetScale(0.1f);
-
-    modelTestB->SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
-    modelTestB->SetPlacement(glm::vec3(-0.5f, -0.5f, 0.0f));
-    modelTestB->SetNoRotation();
-    modelTestB->SetScale(1.0f);
-
-    meshObj = loader.GenerateMeshFromFile("torus.obj");
-    modelObj = new ModelStatic(*meshObj, *testMaterial);
-    modelObj->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
-    modelObj->SetPlacement(glm::vec3(0.0f, 0.0f, 0.0f));
-    modelObj->SetNoRotation();
-    modelObj->SetScale(0.5f);
-
-    auto loaded = loader.GenerateModelsComplex("another_bedroom.obj");
+    auto loaded = loader.GenerateModelsComplex("sirus_city.obj");
     std::vector<ModelStatic*> models = loaded.first;
     //std::vector<ModelStatic*> dupa;
     //dupa.push_back(models[0]);
     roomMeshes = loaded.second;
     room = new ComplexStaticModel(models);
     room->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
-    room->SetPlacement(glm::vec3(0.0f, -2.0f, 1.0f));
-    room->SetRotation(180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    room->SetPlacement(glm::vec3(0.0f, 0.0f, 0.0f));
+    room->SetNoRotation();
+    room->SetScale(0.005f);
+
+    //room->SetRotation(180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     //city->SetNoRotation();
-    room->SetScale(0.4f);
+    //room->SetScale(0.4f);
     //city->SetScale(1.0f);*/
 
-    loaded = loader.GenerateModelsComplex("Jeep_Renegade_2016.obj");
+    loaded = loader.GenerateModelsComplex("spaceship.obj");
     models = loaded.first;
     //std::vector<ModelStatic*> dupa;
     //dupa.push_back(models[0]);
     carMeshes = loaded.second;
     car = new ComplexStaticModel(models);
     car->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
-    car->SetPlacement(glm::vec3(1.0f, -5.0f, 0.0f));
+    carPosition = glm::vec3(maxX, 0.7f, minZ);
+    tempCarPosition = carPosition;
+    car->SetPlacement(carPosition);
+    carTarget = glm::vec3(5.0f, -10.0f, 1.0f);
     //lamp->SetRotation(180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     car->SetNoRotation();
-    car->SetScale(0.1f);
+    car->SetScale(0.01f);
     //city->SetScale(1.0f);*/
 
+    mirrorMesh = loader.GenerateMeshMirror();
+    mirror = new Model(*mirrorMesh);
+
+    mirror->SetColor(glm::vec3(0.1f, 0.1f, 0.1f));
+    mirror->SetNoRotation();
+    mirror->SetPlacement(glm::vec3(-8.0f, 0.0f, -2.0f));
+    mirror->SetScale(5.0f);
+
+}
+
+std::pair<glm::vec3, float> Scene::GetCarPositionAndTarget()
+{
+    return std::pair{carPosition, totalAngle};
+}
+
+void Scene::SwitchAnimation()
+{
+    animationOn = !animationOn;
 }
 
 void Scene::SetUpLights()
@@ -319,36 +384,132 @@ void Scene::SetUpLights()
     lights = new Lights(*lightMesh);
 }
 
-void Scene::AdvanceMovement()
+void Scene::AdvanceMovement(float deltaTime)
 {
     // pass for now
+    Animation(deltaTime);
+    lights->ProcessFrame(deltaTime);
+    lights->ProcessCarMovement(tempCarPosition, totalAngle);
 }
 
-void Scene::Draw(Shader& shader)
+void Scene::SetNoon()
 {
-    lights->SetUniforms(shader);
-
-    //modelTestA->Draw(shader);
-    //modelTestB->Draw(shader);
-    //modelObj->Draw(shader);
-
-    room->Draw(shader);
-    car->Draw(shader);
+    lights->SetNoon();
+}
+void Scene::SetMidnight()
+{
+    lights->SetMidnight();
 }
 
-void Scene::DrawLight(Shader &shader)
+void Scene::Animation(float deltaTime)
 {
-    lights->Draw(shader);
+    const float carSpeed = 0.5f;
+    const float rotationSpeed = 40.0f;
+
+    tempCarPosition = carPosition;
+    if (vibrationsOn)
+        tempCarPosition += GetVibrationVector();
+
+    if (!animationOn)
+        return;
+
+    if (rotating) {
+        float rotateAngle = rotationSpeed * deltaTime;
+
+        totalAngle -= rotateAngle;
+        if (totalAngle <= (animationPhase + 1) * -90.0f) {
+            rotating = false;
+            totalAngle = (animationPhase + 1) * -90.0f;
+            if (totalAngle <= -360.0f)
+                totalAngle = 0.0f;
+            animationPhase = (animationPhase + 1) % totalPhases;
+        }
+        return;
+    }
+
+    float distance = carSpeed * deltaTime;
+    switch(animationPhase) {
+        case 0:
+            carPosition += glm::vec3(0.0f, 0.0f, distance);
+            if (carPosition.z >= maxZ) {
+                rotating = true;
+                carPosition.z = maxZ;
+            }
+            break;
+        case 1:
+            carPosition += glm::vec3(-distance, 0.0f, 0.0f);
+            if (carPosition.x <= minX) {
+                rotating = true;
+                carPosition.x = minX;
+            }
+            break;
+        case 2:
+            carPosition += glm::vec3(0.0f, 0.0f, -distance);
+            if (carPosition.z <= minZ) {
+                rotating = true;
+                carPosition.z = minZ;
+            }
+            break;
+        case 3:
+            carPosition += glm::vec3(distance, 0.0f, 0.0f);
+            if (carPosition.x >= maxX) {
+                rotating = true;
+                carPosition.x = maxX;
+            }
+            break;
+    }
+}
+
+void Scene::Draw(Shader& shader, bool reflection)
+{
+    lights->SetUniforms(shader, reflection);
+
+    room->Draw(shader, reflection);
+
+    car->SetRotation(totalAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    car->SetPlacement(tempCarPosition);
+
+
+    car->Draw(shader, reflection);
+}
+
+glm::vec3 Scene::GetVibrationVector()
+{
+    const float scale = 0.01f;
+    float rands[3];
+    for (size_t i = 0; i < 3; i++) {
+        float sign = (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) > 0.5 ? -1.0f : 1.0f;
+        rands[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * sign * scale;
+    }
+    
+    return glm::vec3(rands[0], rands[1], rands[2]);
+}
+
+void Scene::SwitchVibrations()
+{
+    vibrationsOn = !vibrationsOn;
+}
+
+void Scene::ModifyCarSpotDirection(uint dir)
+{
+    // app doesnt sent form 0 and i dont feel like changing it
+    lights->ModifySpotDirection(dir - 1);
+}
+
+void Scene::DrawLight(Shader &shader, bool reflection)
+{
+    lights->Draw(shader, reflection);
+}
+
+void Scene::DrawMirror(Shader& shader)
+{
+    mirror->Draw(shader);
 }
 
 Scene::~Scene()
 {
-    delete modelTestA;
-    delete modelTestB;
     delete meshTest;
-
-    delete modelObj;
-    delete meshObj;
 
     delete lights;
     delete lightMesh;
@@ -360,4 +521,8 @@ Scene::~Scene()
     for (size_t i = 0; i < carMeshes.size(); i++)
         delete carMeshes[i];
     delete car;
+
+    delete mirror;
+    delete mirrorMesh;
+    delete testMaterial;
 }

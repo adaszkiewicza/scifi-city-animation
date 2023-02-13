@@ -1,7 +1,7 @@
 #include "model.hpp"
 
-Material::Material(glm::vec3 diffuse, glm::vec3 specular, float shininess, glm::vec3 ambient)
- : diffuse(diffuse), specular(specular), shininess(shininess), ambient(ambient)
+Material::Material(glm::vec3 diffuse, glm::vec3 specular, float shininess, glm::vec3 ambient, int textureID)
+ : diffuse(diffuse), specular(specular), shininess(shininess), ambient(ambient), textureID(textureID)
  {
     if (ambient == glm::vec3(0.0f))
         ambient = diffuse;
@@ -14,6 +14,14 @@ void Material::SetUniforms(Shader &shader)
     shader.setUniform("material.diffuse", diffuse);
     shader.setUniform("material.specular", specular);
     shader.setUniform("material.shininess", shininess);
+    if (textureID == -1) {
+        shader.setUniform("material.hasTexture", false);
+    } else {
+        shader.setUniform("material.hasTexture", true);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        shader.setUniform("material.textureID", GL_TEXTURE0);
+    }
 }
 
 void Material::SetColor(glm::vec3 color)
@@ -54,17 +62,34 @@ void Model::SetPlacement(glm::vec3 vector)
 glm::mat4 Model::CalculateModel()
 {
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::scale(model, scale);
+    model = glm::translate(model, moveVector);
     if (angle != 0)
         model = glm::rotate(model, glm::radians(angle), axis);
-    model = glm::translate(model, moveVector);
+    model = glm::scale(model, scale);
     
     return model;
 }
 
-void Model::Draw(Shader& shader)
+glm::mat4 Model::CalculateModelFlipped()
 {
-    glm::mat4 model = CalculateModel();
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::vec3 moveVectorRef = moveVector + glm::vec3(-16.0f, 0.0f, 0.0f);
+    model = glm::translate(model, moveVectorRef);
+    if (angle != 0)
+        model = glm::rotate(model, glm::radians(angle), axis);
+    model = glm::scale(model, scale);
+    model = glm::scale(model, glm::vec3(-1.0f, 1.0f, 1.0f));
+    
+    return model;
+}
+
+void Model::Draw(Shader& shader, bool reflection)
+{
+    glm::mat4 model;
+    if (reflection)
+        model = CalculateModelFlipped();
+    else
+        model = CalculateModel();
     shader.setUniform("model", model);
     shader.setUniform("constColor", color);
 
@@ -75,9 +100,13 @@ ModelStatic::ModelStatic(Mesh &mesh, Material material)
  : Model(mesh), material(material)
 {};
 
-void ModelStatic::Draw(Shader &shader)
+void ModelStatic::Draw(Shader &shader, bool reflection)
 {
-    glm::mat4 model = CalculateModel();
+    glm::mat4 model;
+    if (reflection)
+        model = CalculateModelFlipped();
+    else
+        model = CalculateModel();
     shader.setUniform("model", model);
     material.SetUniforms(shader);
     mesh.Draw(shader);
@@ -113,10 +142,10 @@ void ComplexStaticModel::SetPlacement(glm::vec3 vector)
         models[i]->SetPlacement(vector);
 }
 
-void ComplexStaticModel::Draw(Shader& shader)
+void ComplexStaticModel::Draw(Shader& shader, bool reflection)
 {
     for (size_t i = 0; i < models.size(); i++)
-        models[i]->Draw(shader);
+        models[i]->Draw(shader, reflection);
 }
 
 ComplexStaticModel::~ComplexStaticModel()
