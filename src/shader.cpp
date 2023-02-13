@@ -1,5 +1,3 @@
-#pragma once
-
 #include "shader.hpp"
 
 Shader::Shader(ShaderConfig &config)

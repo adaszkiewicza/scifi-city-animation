@@ -1,5 +1,3 @@
-#pragma once
-
 #include "mesh.hpp"
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<uint> indices)

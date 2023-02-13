@@ -1,5 +1,3 @@
-#pragma once
-
 #include "camera_free.hpp"
 
 CameraFree::CameraFree(glm::vec3 position, glm::vec3 worldUp, glm::vec3 front, float fov, std::string name, float yaw, float pitch)
